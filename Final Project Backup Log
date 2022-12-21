@@ -1,0 +1,506 @@
+/* Actual Game Mechanics were nailed down in a spin-off project to allow for easier testing and adjustments, view this projects spin-offs to see that! As well as here:
+https://www.khanacademy.org/computer-programming/asteroids_asteroid-mechanics/5063105838628864 (<- Used to test visuals, the spin-off was used for playing with game mechanics and the math :O )
+
+Huge Credits as well to the Khan PVector documentations and examples as well, they are an excellent base for figuring out how working with them feels/how to apply it semi-right, you may notice a current bug is that holding down thrust and one turning direction will spin you around and forward in a funny little loop because I couldn't get the math perfect.
+
+Also obviously credits to the original Asteroids game for insperation!
+
+Also, big thanks to @Larry Serflaten for coming in clutch with some last minute bug fixing help that really helped me nail down what was going wrong and see past leaving the same mistake!
+
+VOLUME WARNING!!! This game has sound effects! Before playing, maybe double check your speakers/headphones because Khan's retro sound effects have a certain tinnitus-like quality at high volumes, don't worry, they're all on delays so they ~shouldn't~ loop over each other :)
+
+Controls: 
+    Up Arrow = Thrust
+    Left and Right Arrows = Left and Right turn (respectively)
+    Down Arrow = Brake
+    Space = Fire the laser!!!
+    
+    If you lose all your lives, it's game over! Try and go for a high score!
+
+Otherwise, that's about all I can think of for now! Hope you enjoy! :)
+*/
+//Bitmoji Global Variables
+var bitmojiHeight = 100;
+var x = 100;
+var y = 100;
+//Bitmoji Draw Function Code
+// {
+var drawBitmojiBody = function(x, y, bitmojiHeight) {
+        noStroke();
+        //Shirt
+        fill(22, 36, 227);
+        rect(x-(bitmojiHeight/100*84),y+(bitmojiHeight/100*50),bitmojiHeight/100*35,bitmojiHeight/100*50);
+        rect(x+(bitmojiHeight/100*51),y+(bitmojiHeight/100*50),bitmojiHeight/100*35,bitmojiHeight/100*50);
+        rect(x-(bitmojiHeight/100*50),y+(bitmojiHeight/100*45),bitmojiHeight/100*100,bitmojiHeight/100*55);
+        //Intials
+        textSize(bitmojiHeight/100*40);
+        fill(61, 230, 0);
+        text("PT",x-(bitmojiHeight/100*24),y+(bitmojiHeight/100*90));
+};
+var drawBitmojiHead = function(x, y, bitmojiHeight) {
+        //Head
+        fill(247, 244, 215);
+        ellipse(x,y,bitmojiHeight/100*90,bitmojiHeight/100*100);
+        //Hair
+        fill(255, 160, 8);
+        quad(x-(bitmojiHeight/100*55), y-(bitmojiHeight/100*15), x+(bitmojiHeight/100*55), y-(bitmojiHeight/100*25), x+(bitmojiHeight/100*20), y-(bitmojiHeight/100*60), x-(bitmojiHeight/100*25), y-(bitmojiHeight/100*60));
+        triangle(x-(bitmojiHeight/100*55), y-(bitmojiHeight/100*15), x-(bitmojiHeight/100*30), y-(bitmojiHeight/100*20), x-(bitmojiHeight/100*45), y+(bitmojiHeight/100*15));
+        triangle(x+(bitmojiHeight/100*55), y-(bitmojiHeight/100*25), x+(bitmojiHeight/100*35), y-(bitmojiHeight/100*25), x+(bitmojiHeight/100*45), y+(bitmojiHeight/100*10));
+        //Mouth
+        stroke(0, 0, 0);
+        strokeWeight(bitmojiHeight/100*1);
+        fill(255, 255, 255);
+        arc(x, y+(bitmojiHeight/100*30), bitmojiHeight/100*45, bitmojiHeight/100*15, 25, 190);
+        line(x-(bitmojiHeight/100*22), y+(bitmojiHeight/100*29), x+(bitmojiHeight/100*21), y+(bitmojiHeight/100*33));
+        //Eyes
+        noStroke();
+        fill(23, 248, 252);
+        ellipse(x-(bitmojiHeight/100*22),y,bitmojiHeight/100*12,bitmojiHeight/100*9);
+        ellipse(x+(bitmojiHeight/100*20),y,bitmojiHeight/100*12,bitmojiHeight/100*9);
+        strokeWeight(bitmojiHeight/100*4);
+        stroke(0, 0, 0);
+        point(x+(bitmojiHeight/100*19.5),y-(bitmojiHeight/100*0.5));
+        point(x-(bitmojiHeight/100*22),y-(bitmojiHeight/100*0.5));
+        stroke(255, 160, 8);
+        strokeWeight(bitmojiHeight/100*2);
+        noFill();
+        arc(x-(bitmojiHeight/100*22), y-(bitmojiHeight/100*10), bitmojiHeight/100*19, bitmojiHeight/100*3, 190, 320);
+        arc(x+(bitmojiHeight/100*22), y-(bitmojiHeight/100*10), bitmojiHeight/100*19, bitmojiHeight/100*3, 190, 320);
+        //Glasses
+        stroke(0, 0, 0);
+        strokeWeight(bitmojiHeight/100*2);
+        noFill();
+        rect(x-(bitmojiHeight/100*31), y-(bitmojiHeight/100*7), bitmojiHeight/100*18, bitmojiHeight/100*14);
+        rect(x+(bitmojiHeight/100*11), y-(bitmojiHeight/100*7), bitmojiHeight/100*18, bitmojiHeight/100*14);
+        line(x-(bitmojiHeight/100*12),y,x+(bitmojiHeight/100*9),y);
+        line(x-(bitmojiHeight/100*31),y,x-(bitmojiHeight/100*36),y-(bitmojiHeight/100*5));
+        line(x+(bitmojiHeight/100*29),y,x+(bitmojiHeight/100*40),y-(bitmojiHeight/100*10));
+        //Nose
+        strokeWeight(bitmojiHeight/100*1);
+        bezier(x-(bitmojiHeight/100*2), y+(bitmojiHeight/100*19), x-(bitmojiHeight/100*21), y+(bitmojiHeight/100*23), x+(bitmojiHeight/100*28), y+(bitmojiHeight/100*35), x-(bitmojiHeight/100*4), y+(bitmojiHeight/100*4));
+};
+
+var drawBitmoji = function(x, y, bitmojiHeight) {
+    drawBitmojiBody(x, y, bitmojiHeight);
+    drawBitmojiHead( x, y, bitmojiHeight);
+};
+// }
+//Button Class
+// {
+var Button = function(config) {
+    this.x = config.x || 0;
+    this.y = config.y || 0;
+    this.width = config.width || 150;
+    this.height = config.height || 50;
+    this.label = config.label || "Click";
+    this.buttonColor = config.buttonColor || color(255, 0, 0);
+    this.textColor = config.textColor || color(0, 0, 0);
+    this.onClick = config.onClick || function() {};
+};
+
+Button.prototype.draw = function() {
+    fill(this.buttonColor);
+    rectMode(CENTER);
+    rect(this.x, this.y, this.width, this.height, 5);
+    fill(this.textColor);
+    textSize(20);
+    textAlign(CENTER, CENTER);
+    text(this.label, this.x, this.y);
+};
+
+Button.prototype.isMouseInside = function() {
+    return mouseX > this.x - this.width/2 &&
+           mouseX < this.x + this.width/2 &&
+           mouseY > this.y - this.height/2 &&
+           mouseY < this.y + this.height/2;
+};
+
+Button.prototype.handleMouseClick = function() {
+    if (this.isMouseInside()) {
+        this.onClick();
+    }
+};
+// }
+var sceneCounter = null;
+//Button Build
+// {
+var startButton = new Button({
+    x: 200,
+    y: 200,
+    width: 100,
+    height: 40,
+    label: "Start!",
+    buttonColor: color(166, 23, 166),
+    textColor: color(140, 253, 255),
+    onClick: function() {
+        sceneCounter = 1;
+    }
+});
+var resetButton = new Button({
+    x: 200,
+    y: 290,
+    width: 100,
+    height: 40,
+    label: "Restart!",
+    buttonColor: color(255, 0, 0),
+    textColor: color(0, 0, 0),
+    onClick: function() {
+        Program.restart();
+    }
+});
+// }
+//Title Draw Function
+// {
+var drawTitle = function() {
+    background(140, 253, 255);
+    drawBitmoji(200, 320, 77);
+    textSize(70);
+    fill(166, 23, 166);
+    textAlign(CENTER, CENTER);
+    text("Asteroids!", 200, 60);
+    textSize(20);
+    text("By: Patrick T", 200, 120);
+    startButton.draw();
+    mouseClicked = function() {
+        startButton.handleMouseClick();
+        loop();
+    };
+};
+// }
+//Global Variables/Arrays
+// {
+var keys = [];
+keyPressed = function() {
+    keys[keyCode] = true;
+};
+keyReleased = function() {
+    keys[keyCode] = false;
+};
+var lasers = [];
+var asteroids = [];
+var startAsteroidNum = 3;
+var score = 0;
+var wave = 2;
+// }
+//Asteroid Constructor Function
+// {
+var Asteroid = function(pos, vel, size) {
+    this.pos = pos;
+    this.vel = vel;
+    this.size = size;
+    //this.hit = false;
+    this.width = size-(0.2*size);
+    this.height = size+(0.2*size);
+    this.breakImmunity = 0;
+};
+// }
+//Asteroid Sprite Function
+// {
+Asteroid.prototype.sprite = function(pos, size) {
+    noStroke();
+    fill(255, 255, 255);
+    ellipseMode(CENTER);
+    ellipse(this.pos.x, this.pos.y+(size/5), size*0.75, size*0.7);
+    imageMode(CENTER);
+    image(getImage("cute/Rock"), this.pos.x, this.pos.y, this.width, this.height);
+    
+};
+// }
+//Asteroid Update Function
+// {
+Asteroid.prototype.update = function() {
+    //Asteroid Movement and Velocity Cap
+    this.pos.add(this.vel);
+    this.vel.limit(6);
+    if (this.destroyed === true && this.size === 80 && this.breakImmunity >= 5) {
+        asteroids.push(new Asteroid(new PVector(this.pos.x + 10, this.pos.y), new PVector(random(-0.9, 0.9), random(-0.9, 0.9)), 40));
+        asteroids.push(new Asteroid(new PVector(this.pos.x - 10, this.pos.y), new PVector(random(-0.9, 0.9), random(-0.9, 0.9)), 40));
+        score = score + 8;
+        playSound(getSound("retro/hit2"));
+    } if (this.destroyed === true && this.size === 40 && this.breakImmunity >= 5) {
+        asteroids.push(new Asteroid(new PVector(this.pos.x + 10, this.pos.y), new PVector(random(-0.9, 0.9), random(-0.9, 0.9)), 20));
+        asteroids.push(new Asteroid(new PVector(this.pos.x - 10, this.pos.y), new PVector(random(-0.9, 0.9), random(-0.9, 0.9)), 20));
+        score = score + 4;
+        playSound(getSound("retro/hit2"));
+    } if (this.destroyed === true && this.size === 20 && this.breakImmunity >= 5) {
+        score = score + 2;
+        playSound(getSound("retro/hit2"));
+    } else {
+        loop();
+    }
+    //Asteroid Boundary Looping
+    if (this.pos.x > 425) {
+        this.pos.x = -15;
+    } if (this.pos.x < -25) {
+        this.pos.x = 415;
+    }
+    if (this.pos.y > 425) {
+        this.pos.y = -15;
+    } if (this.pos.y < -25) {
+        this.pos.y = 415;
+    }
+};
+// }
+//Laser constructor function
+// {
+var Laser = function(pos, angle) {
+    this.pos = pos;
+    this.angle = angle;
+    this.life = 120;
+    this.loops = 0;
+    this.width = 2;
+    this.height = 8;
+};
+// }
+//Laser update+sprite
+// {
+Laser.prototype.updateSprite = function() {
+    //Adds a new PVector for the laser's position based on the current angle to work with translate() and rotate() to match the current direction and position of the ship when it is fired and keep it along that path as it travels.
+    this.pos.add(new PVector(-cos(this.angle)*5, -sin(this.angle)*5));
+    //Draws the laser
+    pushMatrix();
+    fill(75, 219, 75);
+    translate(this.pos.x, this.pos.y);
+    rotate(this.angle-90);
+    noStroke();
+    rect(0, 0, this.width, this.height);
+    popMatrix();
+    //Laser Boundary Looping
+    if (this.pos.x > 420) {
+        this.pos.x = -20;
+        this.loops += 1;
+    } if (this.pos.x < -20) {
+        this.pos.x = 420;
+        this.loops += 1;
+    }
+    if (this.pos.y > 420) {
+        this.pos.y = -20;
+        this.loops += 1;
+    } if (this.pos.y < -20) {
+        this.pos.y = 420;
+        this.loops += 1;
+    }
+    this.life --;
+};
+// }
+//Laser Collision Function
+// {
+Laser.prototype.collision = function() {
+    for (var i = 0; i < asteroids.length; i++) {
+        var check = PVector.sub(this.pos, asteroids[i].pos);
+        if (check.mag() < (asteroids[i].size*0.75 + asteroids[i].size*0.7)/2) {
+            this.life = 0;
+            asteroids[i].destroyed = true;
+        }
+    }
+};
+// }
+//Player constructor function
+// {
+var Player = function() {
+    /* After spending nearly half a week forcing myself to learn PVectors, I can safely say that they are easily the most painful and torturous part of javascript thus far :) */
+    this.pos = new PVector(200, 200);
+    this.vel = new PVector(0, 0);
+    this.accel = new PVector(0, 0);
+    this.angle = 90;
+    this.angleVel = 0;
+    this.turnSpeed = 0.5;
+    this.moving = false;
+    this.fireDelay = 15;
+    this.lives = 3;
+    this.hit = false;
+    this.decel = new PVector(0.95, 0.95);
+    this.turnSlow = 0.9;
+    this.altFire = 0;
+    this.width = 12;
+    this.height = 12;
+    this.spawnProt = 0;
+    
+};
+// }
+//Player sprite function
+// {
+Player.prototype.sprite = function() {
+    pushMatrix();
+    translate(this.pos.x, this.pos.y);
+    rotate(this.angle-90);
+    noStroke();
+    if (this.moving === true) {
+        fill(245, 67, 17);
+        triangle(-3, 7, -1, 7, -2, 16);
+        triangle(4, 7, 6, 7, 5, 16);
+        fill(237, 240, 39);
+        triangle(-5, 5, -3, 5, -4, 8);
+        triangle(2, 5, 4, 5, 3, 8);
+    }
+    strokeWeight(1);
+    stroke(0, 0, 0);
+    fill(23, 46, 163);
+    triangle(-6, 6, 6, 6, 0, -6);
+    popMatrix();
+};
+// }
+//Player update function
+// {
+Player.prototype.update = function() {
+    //Movement Update
+    this.vel.add(this.accel);
+    this.vel.limit(10);
+    this.pos.add(this.vel);
+    this.accel.mult(0);
+    this.angle += this.angleVel;
+    this.angleVel *= this.turnSlow;
+    //Fire Delay Update
+    if (this.fireDelay > 0) {
+        this.fireDelay --;
+    }
+    //Player Boundary Looping
+    if (this.pos.x > 425) {
+        this.pos.x = -15;
+    } if (this.pos.x < -25) {
+        this.pos.x = 415;
+    }
+    if (this.pos.y > 425) {
+        this.pos.y = -15;
+    } if (this.pos.y < -25) {
+        this.pos.y = 415;
+    }
+};
+// }
+//Player firing function
+// {
+Player.prototype.fire = function() {
+    if (keys[32] && this.fireDelay === 0) {
+        if (this.altFire === 0) {
+            lasers.push(new Laser(new PVector(this.pos.x-(cos(this.angle-90))*5, this.pos.y-(sin(this.angle-90))*5), this.angle));
+            playSound(getSound("retro/laser1"));
+            this.altFire += 1;
+        } else if (this.altFire === 1) {
+            lasers.push(new Laser(new PVector(this.pos.x-(cos(this.angle-90))*-5, this.pos.y-(sin(this.angle-90))*-5), this.angle));
+            playSound(getSound("retro/laser2"));
+            this.altFire -= 1;
+        }
+        this.fireDelay = 20;
+    }
+};
+// }
+//Player movement/input function
+// {
+Player.prototype.movement = function() {
+    if (keys[UP]) {
+        var thrustAngle = new PVector(0, 0.1);
+        thrustAngle.rotate(this.angle + 90);
+        this.accel.add(thrustAngle);
+        this.moving = true;
+    } else {
+        this.moving = false;
+        this.vel.mult(this.decel);
+    }
+    if (keys[LEFT]) {
+        this.angleVel -= this.turnSpeed;
+    }
+    if (keys[RIGHT]) {
+        this.angleVel += this.turnSpeed;
+    }
+    if (keys[DOWN]) {
+        this.vel.mult(0.5);
+    } 
+};
+// }
+//Player Collision Function
+// {
+Player.prototype.collision = function() {
+    for (var i = 0; i < asteroids.length; i++) {
+        var check2 = PVector.sub(this.pos, asteroids[i].pos);
+        if (check2.mag() < (asteroids[i].size*0.75 + asteroids[i].size*0.7)/2) {
+            this.hit = true;
+            asteroids[i].destroyed = true;
+        }
+    }
+};
+// }
+//Player Reset Function
+// {
+Player.prototype.reset = function() {
+    if (this.hit === true && this.spawnProt >= 180) {
+        this.pos.x = 200;
+        this.pos.y = 200;
+        this.vel.x = 0;
+        this.vel.y = 0;
+        this.accel.x = 0;
+        this.accel.y = 0;
+        this.lives = this.lives - 1;
+        playSound(getSound("retro/boom2"));
+        this.spawnProt = 0;
+        this.hit = false;
+    }
+};
+// }
+
+//Game State Progression
+// {
+var player1 = new Player();
+//Starting Asteroid Spawner
+for (var i = 0; i < startAsteroidNum; i++) {
+    asteroids[i] = new Asteroid(new PVector(random(0, 400), random(0, 100)), new PVector(random(-0.7, 0.7), random(-0.7, 0.7)), 80);
+}
+drawTitle();
+draw = function() {
+    if (sceneCounter === 1) {
+        background(94, 94, 94);
+        //Laser Updating/Drawing/Collision
+        for (var i = 0; i < lasers.length; i++) {
+            lasers[i].updateSprite();
+            lasers[i].collision();
+            if (lasers[i].life === 0 || lasers[i].loops > 2) {
+                lasers.splice(i, 1);
+            } else {
+                loop();
+            }
+        }
+        //Asteroid Updating/Sprite Drawing/Collision
+        for (var i = 0; i < asteroids.length; i++) {
+            asteroids[i].breakImmunity = asteroids[i].breakImmunity + 1;
+            asteroids[i].update();
+            asteroids[i].sprite();
+            if (asteroids[i].destroyed === true) {
+                asteroids.splice(i, 1);
+            }
+        }
+        player1.update();
+        player1.movement();
+        player1.fire();
+        player1.sprite();
+        player1.collision();
+        player1.reset();
+        player1.spawnProt = player1.spawnProt + 1;
+        if (player1.lives === 0) {
+            sceneCounter = 2;
+        }
+        if (asteroids.length === 0) {
+            wave = wave + 1;
+            for (var i = 0; i < wave; i++) {
+                asteroids[i] = new Asteroid(new PVector(random(0, 400), random(0, 400)), new PVector(random(-1, 1), random(-0.7, 0.7)), 80);
+            }
+            //player1.spawnProt = 60;
+        }
+        fill(255, 255, 255);
+        textSize(11);
+        textAlign(LEFT, CENTER);
+        text("Lives: " + player1.lives, 5, 10);
+        text("Score: " + score, 5, 25);
+    } if (sceneCounter === 2) {
+        background(140, 253, 255);
+        fill(166, 23, 166);
+        textSize(30);
+        textAlign(CENTER, CENTER);
+        text("Game over!", 200, 150);
+        text("Your score was:", 200, 190);
+        text(score, 200, 230);
+        resetButton.draw();
+        mouseClicked = function() {
+            resetButton.handleMouseClick();
+        };
+    }
+};
+// }
